@@ -5,14 +5,39 @@ volumes:
     grafana_data: {}
 
 services:
+   cotacao:
+    image: viniciopaiva/cotacao-dolar:1.0.0-SNAPSHOT
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/postgres
+      - QUARKUS_DATASOURCE_USERNAME=quarkus
+      - QUARKUS_DATASOURCE_PASSWORD=quarkus
+      - QUARKUS_JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - JAEGER_SERVICE_NAME=cotacao
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+    ports:
+      - "8080:8080"  # the HTTP endpoint
+    depends_on:
+      postgres:
+         condition: service_healthy
+    networks:
+      - cotacao
+
    postgres:
     container_name: postgres_cotacao
     image: postgres:14.1
     environment: 
-      POSTGRES_USER: cotacao
-      POSTGRES_PASSWORD: cotacao
+      POSTGRES_USER: quarkus
+      POSTGRES_PASSWORD: quarkus
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quarkus"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    networks:
+      - cotacao
       
    jaeger:
     container_name: jaeger_cotacao
@@ -26,13 +51,16 @@ services:
       - "14268:14268"
       - "14250:14250"
       - "9411:9411"
+    networks:
+      - cotacao
       
    prometheus:
     container_name: prometheus_cotacao
     image: prom/prometheus:latest
+#    user: "1000:1000"
     volumes:
       - ./prometheus/:/etc/prometheus/
-      - ./prometheus/data:/prometheus
+      - grafana_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -42,15 +70,24 @@ services:
     ports:
       - 9090:9090
     restart: always
+    networks:
+      - cotacao
     
    grafana:
     container_name: grafana_cotacao
-    image: grafana/grafana:7.0.3
+    image: grafana/grafana
+#    user: "1000:1000"
     depends_on:
       - prometheus
     ports:
       - 3000:3000
     volumes:
-      - ./grafana/data:/var/lib/grafana
+      - prometheus_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./src:/var/lib/grafana/dashboards
+#      - ./src:/var/lib/grafana/dashboards
+    networks:
+      - cotacao
+
+networks:
+  cotacao:
+    driver: bridge

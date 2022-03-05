@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import br.com.vpaiva.client.response.CotacaoDiaResponse;
 import br.com.vpaiva.client.response.CotacaoValueDTO;
-import io.quarkus.test.junit.QuarkusTest;
+import br.com.vpaiva.repository.TransactionalQuarkusTest;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 
-@QuarkusTest
+@TransactionalQuarkusTest
 class CotacaoDiaServiceTest {
 
   @Inject

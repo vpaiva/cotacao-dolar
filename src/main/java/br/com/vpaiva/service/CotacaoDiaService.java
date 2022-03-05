@@ -6,7 +6,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.Set;
 import javax.enterprise.context.ApplicationScoped;
-import javax.transaction.Transactional;
 import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import br.com.vpaiva.client.response.CotacaoValueDTO;
 import br.com.vpaiva.model.CotacaoDolar;
 import br.com.vpaiva.repository.CotacaoDolarRepository;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.infrastructure.Infrastructure;
 
 @ApplicationScoped
 @Traced
@@ -41,7 +41,7 @@ public class CotacaoDiaService {
         .map(this::toCotacaoValue)
         .invoke(
             response -> log.debug("Call bcbClient getCotacaoDolarDia. response: {}", dataCotacao))
-        .invoke(cotacaoValue -> saveRequest(dataCotacao, cotacaoValue)).onFailure()
+        .call(cotacaoValue -> saveRequest(dataCotacao, cotacaoValue)).onFailure()
         .invoke(ex -> log.error("Call bcbClient getCotacaoDolarDia error.", ex));
   }
 
@@ -55,19 +55,28 @@ public class CotacaoDiaService {
     return null;
   }
 
-  @Transactional
-  void saveRequest(String dataCotacao, CotacaoValueDTO cotacaoValueDTO) {
+  Uni<CotacaoDolar> saveRequest(String dataCotacao, CotacaoValueDTO cotacaoValueDTO) {
     if (Objects.isNull(dataCotacao) || Objects.isNull(cotacaoValueDTO)) {
-      return;
+      return Uni.createFrom().nullItem();
     }
 
-    CotacaoDolar cotacaoDolar =
-        new CotacaoDolar(LocalDate.parse(dataCotacao, DateTimeFormatter.ofPattern("MM-dd-yyyy")),
-            cotacaoValueDTO.getCotacaoCompra(), cotacaoValueDTO.getCotacaoVenda(),
-            LocalDateTime.parse(cotacaoValueDTO.getDataHoraCotacao(),
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
+    CotacaoDolar cotacaoDolar = toCotacaoDolar(dataCotacao, cotacaoValueDTO);
 
+    return Uni.createFrom().item(() -> save(cotacaoDolar))
+        .runSubscriptionOn(Infrastructure.getDefaultExecutor());
+
+  }
+
+  CotacaoDolar save(CotacaoDolar cotacaoDolar) {
     cotacaoDolarRepository.persist(cotacaoDolar);
+    return cotacaoDolar;
+  }
+
+  CotacaoDolar toCotacaoDolar(String dataCotacao, CotacaoValueDTO cotacaoValueDTO) {
+    return new CotacaoDolar(LocalDate.parse(dataCotacao, DateTimeFormatter.ofPattern("MM-dd-yyyy")),
+        cotacaoValueDTO.getCotacaoCompra(), cotacaoValueDTO.getCotacaoVenda(),
+        LocalDateTime.parse(cotacaoValueDTO.getDataHoraCotacao(),
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")));
   }
 
 }

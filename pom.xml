@@ -8,6 +8,8 @@
   <properties>
     <compiler-plugin.version>3.8.1</compiler-plugin.version>
     <failsafe.useModulePath>false</failsafe.useModulePath>
+    <m2e.apt.activation>jdt_apt</m2e.apt.activation>
+    <mapstruct.version>1.4.2.Final</mapstruct.version>
     <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -15,8 +17,6 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>2.7.3.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
-    <m2e.apt.activation>jdt_apt</m2e.apt.activation>
-    <mapstruct.version>1.4.2.Final</mapstruct.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -74,6 +74,10 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-container-image-docker</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
     </dependency>
@@ -111,14 +115,14 @@
         <configuration>
           <parameters>${maven.compiler.parameters}</parameters>
           <compilerArgs>
-          	<compilerArg>-Amapstruct.defaultComponentModel=cdi</compilerArg>
+            <compilerArg>-Amapstruct.defaultComponentModel=cdi</compilerArg>
           </compilerArgs>
           <annotationProcessorPaths>
-          	<path>
-			    <groupId>org.mapstruct</groupId>
-			    <artifactId>mapstruct-processor</artifactId>
-			    <version>${mapstruct.version}</version>
-          	</path>
+            <path>
+              <groupId>org.mapstruct</groupId>
+              <artifactId>mapstruct-processor</artifactId>
+              <version>${mapstruct.version}</version>
+            </path>
           </annotationProcessorPaths>
         </configuration>
       </plugin>
