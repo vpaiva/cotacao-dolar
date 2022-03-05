@@ -15,6 +15,8 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>2.7.3.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
+    <m2e.apt.activation>jdt_apt</m2e.apt.activation>
+    <mapstruct.version>1.4.2.Final</mapstruct.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -46,7 +48,11 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-jackson</artifactId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -54,11 +60,17 @@
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-arc</artifactId>
+      <artifactId>quarkus-hibernate-validator</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy</artifactId>
+      <artifactId>quarkus-arc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mapstruct</groupId>
+      <artifactId>mapstruct</artifactId>
+      <version>${mapstruct.version}</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -68,6 +80,11 @@
     <dependency>
       <groupId>io.rest-assured</groupId>
       <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jacoco</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -92,9 +109,17 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
         <configuration>
+          <parameters>${maven.compiler.parameters}</parameters>
           <compilerArgs>
-            <arg>-parameters</arg>
+          	<compilerArg>-Amapstruct.defaultComponentModel=cdi</compilerArg>
           </compilerArgs>
+          <annotationProcessorPaths>
+          	<path>
+			    <groupId>org.mapstruct</groupId>
+			    <artifactId>mapstruct-processor</artifactId>
+			    <version>${mapstruct.version}</version>
+          	</path>
+          </annotationProcessorPaths>
         </configuration>
       </plugin>
       <plugin>

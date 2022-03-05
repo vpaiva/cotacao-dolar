@@ -1,4 +1,4 @@
-package br.com.vpaiva;
+package br.com.vpaiva.resource;
 
 import io.quarkus.test.junit.NativeImageTest;
 

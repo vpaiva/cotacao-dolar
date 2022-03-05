@@ -1,13 +1,19 @@
 version: "3.9"
+
+volumes:
+    prometheus_data: {}
+    grafana_data: {}
+
 services:
    postgres:
     container_name: postgres_cotacao
-    image: postgres:14.2
+    image: postgres:14.1
     environment: 
       POSTGRES_USER: cotacao
       POSTGRES_PASSWORD: cotacao
     ports:
       - "5433:5432"
+      
    jaeger:
     container_name: jaeger_cotacao
     image: jaegertracing/all-in-one:1.31
@@ -20,12 +26,31 @@ services:
       - "14268:14268"
       - "14250:14250"
       - "9411:9411"
+      
    prometheus:
     container_name: prometheus_cotacao
-    image: prometheus-cotacao
-    network_mode: "host"
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - ./prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - 9090:9090
+    restart: always
     
    grafana:
     container_name: grafana_cotacao
-    image: grafana/grafana:6.5.0
-    network_mode: "host"
+    image: grafana/grafana:7.0.3
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./src:/var/lib/grafana/dashboards
